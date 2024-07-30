@@ -1,0 +1,36 @@
+public class OrderSummaryController {
+    @AuraEnabled(cacheable=true)
+    public static OrderWrapper getOrderSummary() {
+        Order order = [
+            SELECT Id, OrderNumber, Account.Name,Total_quantity__c (SELECT Quantity, UnitPrice, Product2.Name FROM OrderItems)
+            FROM Order
+        ];
+        
+
+        OrderWrapper orderWrapper = new OrderWrapper(
+            order.Id,
+            order.OrderNumber,
+            order.Account.Name,
+            order.Total_quantity__c,
+            order.OrderItems
+        );
+
+        return orderWrapper;
+    }
+
+    public class OrderWrapper {
+        @AuraEnabled public String Id;
+        @AuraEnabled public String orderNumber;
+        @AuraEnabled public String accountName;
+        @AuraEnabled public Decimal totalQuantity;
+        @AuraEnabled public List<OrderItem> orderItems;
+
+        public OrderWrapper(String Id, String orderNumber, String accountName, Decimal totalQuantity, List<OrderItem> orderItems) {
+            this.Id = Id;
+            this.orderNumber = orderNumber;
+            this.accountName = accountName;
+            this.totalQuantity = totalQuantity;
+            this.orderItems = orderItems;
+        }
+    }
+}

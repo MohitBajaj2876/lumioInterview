@@ -1,0 +1,34 @@
+public class OrderTriggerHandler {
+   public static void onAfterInsert(List<OrderItem> newOrderItems) {
+        Set<Id> orderIds = new Set<Id>();
+        for (OrderItem oi : newOrderItems) {
+            orderIds.add(oi.OrderId);
+        }
+        if (orderIds.isEmpty()) {
+            return; 
+        }
+        Map<Id, Decimal> orderQuantities = new Map<Id, Decimal>();
+        AggregateResult[] groupedResults = [
+            SELECT OrderId, SUM(Quantity) totalQuantity
+            FROM OrderItem
+            WHERE OrderId IN :orderIds
+            GROUP BY OrderId
+        ];
+
+        for (AggregateResult ar : groupedResults) {
+            orderQuantities.put((Id)ar.get('OrderId'), (Decimal)ar.get('totalQuantity'));
+        }
+        List<Order> ordersToUpdate = new List<Order>();
+        for (Id orderId : orderIds) {
+            if (orderQuantities.containsKey(orderId)) {
+                ordersToUpdate.add(new Order(
+                    Id = orderId,
+                    Total_Quantity__c = orderQuantities.get(orderId)
+                ));
+            }
+        }
+        if (ordersToUpdate!=null && !ordersToUpdate.isEmpty()) {
+            update ordersToUpdate;
+        }
+    }
+}

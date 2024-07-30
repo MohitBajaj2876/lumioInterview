@@ -1,0 +1,111 @@
+@isTest
+public class InventoryManagementTest {
+    @isTest
+    static void testReduceInventory() {
+      
+        Account testAccount = new Account(Name = 'Test Account');
+        insert testAccount;
+        
+         Contract testContract = new Contract(
+            AccountId = testAccount.Id,
+            ContractTerm = 12, // Contract duration in months
+            StartDate = Date.today(),
+            Status = 'Draft'
+        );
+        insert testContract;
+        Pricebook2 testPricebook = new Pricebook2(
+            Name = 'Test Pricebook',
+            IsActive = true
+        );
+        insert testPricebook;
+        Product2 testProduct = new Product2(
+            Name = 'Test Product',
+            IsActive = true
+        );
+        insert testProduct;
+        PricebookEntry testPricebookEntry = new PricebookEntry(
+            Pricebook2Id = testPricebook.Id,
+            Product2Id = testProduct.Id,
+            UnitPrice = 100,
+            IsActive = true
+        );
+        insert testPricebookEntry;
+        Order o = new Order(
+            AccountId = testAccount.Id,
+            Pricebook2Id = testPricebook.Id,
+            EffectiveDate = Date.today(),
+            Status = 'Draft'
+        );
+        insert o;
+        OrderItem testOrderItem = new OrderItem(
+            OrderId = o.Id,
+            PricebookEntryId = testPricebookEntry.Id,
+            Quantity = 5,
+            UnitPrice = testPricebookEntry.UnitPrice
+        );
+        insert testOrderItem;
+
+        InventoryManagement.reduceInventory(new List<OrderItem>{ testOrderItem });
+
+        // Verify the results
+        Product2 prod1After = [SELECT QuantityOnHand__c FROM Product2 WHERE Id = :testProduct.Id];
+        
+
+        System.assertEquals(95, prod1After.QuantityOnHand__c);
+      
+    }
+
+    @isTest
+    static void testReplenishInventory() {
+        Account testAccount = new Account(Name = 'Test Account');
+        insert testAccount;
+        
+         Contract testContract = new Contract(
+            AccountId = testAccount.Id,
+            ContractTerm = 12, // Contract duration in months
+            StartDate = Date.today(),
+            Status = 'Draft'
+        );
+        insert testContract;
+        Pricebook2 testPricebook = new Pricebook2(
+            Name = 'Test Pricebook',
+            IsActive = true
+        );
+        insert testPricebook;
+        Product2 testProduct = new Product2(
+            Name = 'Test Product',
+            IsActive = true
+        );
+        insert testProduct;
+        PricebookEntry testPricebookEntry = new PricebookEntry(
+            Pricebook2Id = testPricebook.Id,
+            Product2Id = testProduct.Id,
+            UnitPrice = 100,
+            IsActive = true
+        );
+        insert testPricebookEntry;
+        Order o = new Order(
+            AccountId = testAccount.Id,
+            Pricebook2Id = testPricebook.Id,
+            EffectiveDate = Date.today(),
+            Status = 'Draft'
+        );
+        insert o;
+        OrderItem testOrderItem = new OrderItem(
+            OrderId = o.Id,
+            PricebookEntryId = testPricebookEntry.Id,
+            Quantity = 5,
+            UnitPrice = testPricebookEntry.UnitPrice
+        );
+        insert testOrderItem;
+
+ 
+        InventoryManagement.replenishInventory(new List<OrderItem>{ testOrderItem });
+
+     
+        Product2 prod1After = [SELECT QuantityOnHand__c FROM Product2 WHERE Id = :testProduct.Id];
+   
+
+        System.assertEquals(105, prod1After.QuantityOnHand__c);
+    }
+}

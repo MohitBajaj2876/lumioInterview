@@ -1,0 +1,48 @@
+public class InventoryManagement {
+    public static void reduceInventory(List<OrderItem> orderItems) {
+        if (orderItems == null || orderItems.isEmpty()) {
+            return;
+        }
+
+        Map<Id, Decimal> productQuantities = new Map<Id, Decimal>();
+
+        for (OrderItem item : orderItems) {
+            if (productQuantities.containsKey(item.Product2Id)) {
+                productQuantities.put(item.Product2Id, productQuantities.get(item.Product2Id) + item.Quantity);
+            } else {
+                productQuantities.put(item.Product2Id, item.Quantity);
+            }
+        }
+
+        List<Product2> productsToUpdate = [SELECT Id, QuantityOnHand__c FROM Product2 WHERE Id IN :productQuantities.keySet()];
+
+        for (Product2 product : productsToUpdate) {
+            product.QuantityOnHand__c = (product.QuantityOnHand__c == null ? 0 : product.QuantityOnHand__c) - productQuantities.get(product.Id);
+        }
+
+        update productsToUpdate;
+    }
+
+    public static void replenishInventory(List<OrderItem> orderItems) {
+        if (orderItems == null || orderItems.isEmpty()) {
+            return;
+        }
+
+        Map<Id, Decimal> productQuantities = new Map<Id, Decimal>();
+
+        for (OrderItem item : orderItems) {
+            if (productQuantities.containsKey(item.Product2Id)) {
+                productQuantities.put(item.Product2Id, productQuantities.get(item.Product2Id) + item.Quantity);
+            } else {
+                productQuantities.put(item.Product2Id, item.Quantity);
+            }
+        }
+        List<Product2> productsToUpdate = [SELECT Id, QuantityOnHand__c FROM Product2 WHERE Id IN :productQuantities.keySet()];
+
+        for (Product2 product : productsToUpdate) {
+            product.QuantityOnHand__c = (product.QuantityOnHand__c == null ? 0 : product.QuantityOnHand__c) + productQuantities.get(product.Id);
+        }
+
+        update productsToUpdate;
+    }
+}
